@@ -1,0 +1,228 @@
+/**
+ * Pablo Veran
+ * CSE 271 Section C
+ * 2/13/2023
+ * Code is able to take a file and be able to either clean the file,
+ * return palindromes, or return 100 dollar words.
+ */
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
+public class FileParser {
+	
+	/**
+	 * Main method
+	 * @param args String
+	 */
+	public static void main(String[] args) {
+		
+		// asks for input file
+		Scanner sc = new Scanner(System.in);
+		System.out.print("Enter input filename: ");
+		String inputFilename = sc.nextLine();
+		File in = new File(inputFilename);
+		
+		//check if file does not exist
+		if(!in.exists()) {
+			System.out.println("File does not exist. Goodbye.");
+			System.exit(0);
+		} else {
+			System.out.println("Found. What do you want to output?");
+		}
+		
+		// menu
+		System.out.println("1.Raw word list");
+		System.out.println("2.Palindromes");
+		System.out.println("3.$100 words");
+		System.out.print("Choose: ");
+		
+		// choice scanner
+		int choice = sc.nextInt();
+		sc.nextLine();
+		
+		// choice switch
+		switch (choice) {
+	    case 1:
+	    	System.out.print("Enter output filename:");
+	    	String outputFilename = sc.nextLine();
+	    	sc.close();
+	    	File out = new File(outputFilename);
+	    	parse(in,out);
+	    	System.out.println("Finished printing raw word list.");
+	    	break;
+	    case 2:
+	    	System.out.print("Enter output filename:");
+	    	outputFilename = sc.nextLine();
+	    	sc.close();
+	    	out = new File(outputFilename);
+	    	parsePalindrome(in,out);
+	    	System.out.println("Finished printing palindromes.");
+	        break;
+	    case 3:
+	    	System.out.print("Enter output filename:");
+	    	outputFilename = sc.nextLine();
+	    	sc.close();
+	    	out = new File(outputFilename);
+	    	parseHundredDollarWord(in,out);
+	    	System.out.println("Finished printing $100 words.");
+	        break;
+	    default:
+	  }		
+	}
+	
+	/**
+	 * Able to clean the white spaces and punctuation around a given word.
+	 * Also able to upper case the word.
+	 * @param word String
+	 * @return A String of the upper cased, clean word.
+	 */
+	public static String clean(String word) {
+		String clean = word.replaceAll("[^a-zA-Z]", "").toUpperCase();
+	    return clean;
+	}
+	
+	/**
+	 * Able to parse information to out File
+	 * @param in File
+	 * @param out File
+	 */
+	public static void parse(File in, File out) {
+		
+		// goes through file in and puts each word in a new line
+		try {
+			Scanner sc = new Scanner(in);
+			try (PrintWriter pw = new PrintWriter(new FileWriter(out))) {
+				while (sc.hasNext()) {
+					String word = sc.next();
+					pw.println(word);
+				}
+			}
+			sc.close();
+		} catch (IOException e) {
+			System.err.println("Error parsing file: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Able to find out whether a given string is a 
+	 * palindrome or not.
+	 * @param word String
+	 * @return True if word is a palindrome or false if word is not a palindrome.
+	 */
+	public static boolean isPalindrome(String word) {
+		int start = 0, end = word.length() - 1;
+        
+        // Reads word from start and end. Compares if characters are equal
+        // until the start index is greater than end index.
+        while (start < end) {
+            if (word.charAt(start) != word.charAt(end)) {
+                return false;
+            }
+            start++;
+            end--;
+        }
+        return true;
+	}
+	
+	/**
+	 * Able to parse information to out File
+	 * @param in File
+	 * @param out File
+	 */
+	public static void parsePalindrome(File in, File out) {
+		
+		// Goes through file and finds palindromes and saves them to arrayList
+		List<String> palindromes = new ArrayList<>();
+        try (Scanner parse = new java.util.Scanner(in)) {
+        	while (parse.hasNextLine()) {
+        		String line = parse.nextLine();
+                String[] words = line.split("\\s+");
+                for (String w : words) {
+                	String word = clean(w);
+                    if (isPalindrome(word)) {
+                        if (!palindromes.contains(word)) {
+                            palindromes.add(word);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return;
+        }
+        
+        // Sorts palindromes and writes in new file
+        Collections.sort(palindromes);
+        try {
+        	PrintWriter writer = new PrintWriter(new FileWriter(out));
+            for (String palindrome : palindromes) {
+                writer.println(palindrome);
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+	}
+	
+	/**
+	 * Able to give the monetary value of a word.
+	 * @param word String
+	 * @return The monetary value of a word.
+	 */
+	public static int value(String word) {
+		int value = 0;
+		
+		// Goes through the word and makes it upper case to make case-insensitive.
+		// Stores word into a character array then assigns monetary values to each word.
+	    for (char c : word.toUpperCase().toCharArray()) {
+	        if (c >= 'A' && c <= 'Z') {
+	            value += c - 'A' + 1;
+	        }
+	    }
+	    return value;	
+	}
+	
+	/**
+	 * Able to parse information to out File
+	 * @param in File
+	 * @param out File
+	 */
+	public static void parseHundredDollarWord(File in, File out) {
+		 
+		// goes through file and adds hundred dollar words to an arrayList
+		// also prints them
+		try {
+	        FileWriter fw = new FileWriter(out);
+	        PrintWriter writer = new PrintWriter(fw);
+
+	        // ArrayList that saves hundred dollar word
+	        try (Scanner scanner = new Scanner(in)) {
+				ArrayList<String> words = new ArrayList<String>();
+
+				// Uses clean method to clean Strings then adds Strings to arrayList
+				while (scanner.hasNext()) {
+				    String word = clean(scanner.next());
+				    if (value(word) == 100 && !words.contains(word.toUpperCase())) {
+				        words.add(word.toUpperCase());
+				    }
+				}
+				
+				// sorts hundred dollar words and prints dollar hundred dollar words to file
+				Collections.sort(words);
+				for (String word : words) {
+				    writer.println(word);
+				}
+			}
+	        writer.close();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+}
